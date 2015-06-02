@@ -210,11 +210,15 @@ func (tail *Tail) tailFileSync() {
 	tail.openReader()
 
 	// Read line by line.
+	tmp := ""
 	for {
 		line, err := tail.readLine()
 
 		// Process `line` even if err is EOF.
-		if err == nil || (err == io.EOF && line != "") {
+		if err == nil {
+			if tmp != "" {
+				line = tmp + line
+			}
 			cooloff := !tail.sendLine(line)
 			if cooloff {
 				// Wait a second before seeking till the end of
@@ -236,8 +240,12 @@ func (tail *Tail) tailFileSync() {
 			}
 		} else if err == io.EOF {
 			if !tail.Follow {
+				if line != "" {
+					tail.sendLine(line)
+				}
 				return
 			}
+			tmp += line
 			// When EOF is reached, wait for more data to become
 			// available. Wait strategy is based on the `tail.watcher`
 			// implementation (inotify or polling).
