@@ -218,6 +218,7 @@ func (tail *Tail) tailFileSync() {
 		if err == nil {
 			if tmp != "" {
 				line = tmp + line
+				tmp = ""
 			}
 			cooloff := !tail.sendLine(line)
 			if cooloff {
